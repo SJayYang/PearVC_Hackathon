@@ -16,7 +16,7 @@ app.add_middleware( #Initialize middleware connections
    allow_headers=["*"],
 )
 
-OPENAI_API_KEY = "sk-proj-BZ60XOVjAHC4GFAM82j1T3BlbkFJIDIfT1iq4eIArjJ1TjrN"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_API_KEY, default_headers={"OpenAI-Beta": "assistants=v2"})
 
 class JobDescription(BaseModel):
