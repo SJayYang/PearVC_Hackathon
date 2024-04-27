@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import VideoStream from "../video_stream";
 
 const InterviewPage = () => {
   const [recording, setRecording] = useState(false);
@@ -41,7 +42,7 @@ const InterviewPage = () => {
 
   return (
     <div style={containerStyles}>
-      <video ref={videoRef} controls style={videoStyles} />
+      <VideoStream />
       <button onClick={handleRecordButtonClick} style={buttonStyles}>
         {recording ? 'Stop Recording' : 'Record Audio'}
       </button>
