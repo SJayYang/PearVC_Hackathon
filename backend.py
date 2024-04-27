@@ -1,7 +1,8 @@
 from openai import OpenAI
 from typing_extensions import override
+import os
 
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 client = OpenAI(api_key=OPENAI_API_KEY, default_headers={"OpenAI-Beta": "assistants=v2"})
 
 def create_assistant(job_description, resume_path):
