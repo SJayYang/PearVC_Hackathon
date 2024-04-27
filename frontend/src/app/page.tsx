@@ -28,8 +28,8 @@ export default function Home() {
 
       if (response.ok) {
         console.log("Assistant created successfully.");
-        console.log(response.json());
-        router.push(`/interview/${response}`);
+        const resp = await response.json()
+        router.push(`/interview/${resp}`);
       } else {
         const errorData = await response.json();
         console.error('Failed to create the assistant:', errorData);

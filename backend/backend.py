@@ -16,11 +16,14 @@ app.add_middleware( #Initialize middleware connections
    allow_headers=["*"],
 )
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = "sk-proj-fQXPOdYXMxJhAF6dK7LRT3BlbkFJOjwpC8KXKI1G6VLszrIu"
 client = OpenAI(api_key=OPENAI_API_KEY, default_headers={"OpenAI-Beta": "assistants=v2"})
 
 class JobDescription(BaseModel):
     job_description: str
+
+class UserMessage(BaseModel):
+    user_message: str
 
 @app.post("/api/upload-pdf")
 async def upload_pdf(file: UploadFile = File(...)):
@@ -54,7 +57,29 @@ async def create_assistant(job_description: JobDescription):
         messages=[]
     )
 
-    return assistant, thread
+    return thread.id
+
+@app.post("/api/get-response")
+async def get_response(user_message):
+    new_message = client.beta.threads.messages.create(
+        thread.id,
+        role="user",
+        content=user_message + ". Given this response, as an interviewer, how would you respond and what is a follow-up question you would ask? Please just state a response to the interviewee's statement, the question, and nothing else.",
+        attachments=[{"file_id": message_file.id, "tools": [{"type": "file_search"}]}]
+    )
+
+    run = client.beta.threads.runs.create_and_poll(
+        thread_id=thread.id, assistant_id=assistant.id
+    )
+
+    messages = list(client.beta.threads.messages.list(thread_id=thread.id, run_id=run.id))
+    message_content = messages[-1].content[0].text      
+    response = message_content.value
+    return response
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 '''
 def create_assistant(job_description, resume_path):
@@ -91,24 +116,3 @@ def create_assistant(job_description, resume_path):
 
     return assistant, message_file, thread
 '''
-
-def get_response(user_message, thread, message_file, assistant):
-    new_message = client.beta.threads.messages.create(
-        thread.id,
-        role="user",
-        content=user_message + ". Given this response, as an interviewer, how would you respond and what is a follow-up question you would ask? Please just state a response to the interviewee's statement, the question, and nothing else.",
-        attachments=[{"file_id": message_file.id, "tools": [{"type": "file_search"}]}]
-    )
-
-    run = client.beta.threads.runs.create_and_poll(
-        thread_id=thread.id, assistant_id=assistant.id
-    )
-
-    messages = list(client.beta.threads.messages.list(thread_id=thread.id, run_id=run.id))
-    message_content = messages[-1].content[0].text      
-    response = message_content.value
-    return response
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
